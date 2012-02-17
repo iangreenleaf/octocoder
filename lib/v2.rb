@@ -27,5 +27,12 @@ module CCS
       end
       response.to_json
     end  
+
+    get '/contributions/:user' do
+      response = User.forks(params[:user]).reject do |branch|
+        Repository::get_contributions(branch[:owner], branch[:name], params[:user]).zero?
+      end
+      response.to_json
+    end
   end
 end
