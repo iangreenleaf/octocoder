@@ -5,14 +5,16 @@ describe CCS::V1 do
     Repository.all.destroy!
     Contribution.all.destroy!
 
-    FakeWeb.register_uri(
+    stub_request(
       :get,
-      "https://api.github.com/repos/rails/rails/contributors",
+      "https://api.github.com/repos/rails/rails/contributors"
+    ).to_return(
       :body => '[{"login":"leereilly","contributions":6}]'
     )
-    FakeWeb.register_uri(
+    stub_request(
       :get,
-      %r|https://api\.github\.com/repos/.*leeeeeee.*/contributors|,
+      %r|https://api\.github\.com/repos/.*leeeeeee.*/contributors|
+    ).to_return(
       :body => '{"message":"Not Found"}',
       :status => ["404", "Not Found"]
     )

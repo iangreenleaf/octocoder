@@ -6,9 +6,10 @@ describe CCS::V2 do
     Contribution.all.destroy!
 
     %w[sinatra/sinatra leereilly/leereilly.net].each do |r|
-      FakeWeb.register_uri(
+      stub_request(
         :get,
-        "https://api.github.com/repos/#{r}/contributors",
+        "https://api.github.com/repos/#{r}/contributors"
+      ).to_return(
         :body => '[{"login":"leereilly","contributions":3}]'
       )
     end
@@ -32,9 +33,8 @@ describe CCS::V2 do
     
     it "caches the repo" do
       get '/sinatra/sinatra/leereilly/'
-      FakeWeb.last_request = nil
       get '/sinatra/sinatra/leereilly/'
-      FakeWeb.last_request.should be_nil
+      WebMock.should have_requested(:any, /.*/).once
     end
   end
   
@@ -52,9 +52,10 @@ describe CCS::V2 do
     end
     
     it "should return an error if the repo doesn't exist" do
-      FakeWeb.register_uri(
+      stub_request(
         :get,
-        "https://api.github.com/repos/admin/schmadmin/contributors",
+        "https://api.github.com/repos/admin/schmadmin/contributors"
+      ).to_return(
         :body => '{"message":"Not Found"}',
         :status => ["404", "Not Found"]
       )
