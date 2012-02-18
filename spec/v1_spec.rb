@@ -2,6 +2,9 @@ require 'spec_helper'
 
 describe CCS::V1 do
   before do
+    Repository.all.destroy!
+    Contribution.all.destroy!
+
     FakeWeb.register_uri(
       :get,
       "https://api.github.com/repos/rails/rails/contributors",

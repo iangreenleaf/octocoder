@@ -2,6 +2,9 @@ require 'spec_helper'
 
 describe CCS::V2 do
   before do
+    Repository.all.destroy!
+    Contribution.all.destroy!
+
     %w[sinatra/sinatra leereilly/leereilly.net].each do |r|
       FakeWeb.register_uri(
         :get,
