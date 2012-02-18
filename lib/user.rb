@@ -10,22 +10,22 @@ class User
     remain = 0
     forks = []
     EventMachine.run do
-    repos.each do |current|
-      if current["fork"]
-        remain += 1
-        http = EventMachine::Protocols::HttpClient2.connect(
-          :host => "api.github.com",
-          :port => 443,
-          :ssl => true
-        )
-        req = http.get "/repos/#{current["owner"]["login"]}/#{current["name"]}"
-        req.callback do |response|
-          remain -= 1
-          source = JSON.parse( response.content )["source"]
-          forks << { :owner => source["owner"]["login"], :name => source["name"] }
-          return forks if remain <= 0
+      repos.each do |current|
+        if current["fork"]
+          remain += 1
+          http = EventMachine::Protocols::HttpClient2.connect(
+            :host => "api.github.com",
+            :port => 443,
+            :ssl => true
+          )
+          req = http.get "/repos/#{current["owner"]["login"]}/#{current["name"]}"
+          req.callback do |response|
+            remain -= 1
+            source = JSON.parse( response.content )["source"]
+            forks << { :owner => source["owner"]["login"], :name => source["name"] }
+            return forks if remain <= 0
+          end
         end
-      end
       end
     end
   end
