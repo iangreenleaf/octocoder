@@ -23,10 +23,11 @@ class User
             remain -= 1
             source = JSON.parse( response.content )["source"]
             forks << { :owner => source["owner"]["login"], :name => source["name"] }
-            return forks if remain <= 0
+            EventMachine.stop if remain <= 0
           end
         end
       end
     end
+    forks
   end
 end
