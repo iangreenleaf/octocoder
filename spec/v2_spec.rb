@@ -63,4 +63,42 @@ describe CCS::V2 do
       last_response.body.should == '{"error":"404 Resource Not Found"}'
     end
   end
+
+  describe "GET '/contributions/foobar'" do
+    before do
+      stub_request(
+        :get,
+        %r|https://api\.github\.com/users/foobar/repos\?.*|
+      ).to_return(
+        :body => '[{"name":"linux","fork":true,"owner":{"login":"foobar"}},
+        {"name":"my_thing","fork":false,"owner":{"login":"foobar"}},
+        {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}}]'
+      )
+      %w[linux didnt_contrib].each do |r|
+        stub_request(
+          :get,
+          "https://api.github.com/repos/foobar/#{r}"
+      ).to_return(
+          :body => '{"source":{"name":"'+r+'","owner":{"login":"linus"}}}'
+        )
+      end
+      stub_request(
+        :get,
+        "https://api.github.com/repos/linus/linux/contributors"
+      ).to_return(
+        :body => '[{"login":"foobar","contributions":3}]'
+      )
+      stub_request(
+        :get,
+        "https://api.github.com/repos/linus/linux/contributors"
+      ).to_return(
+        :body => '[{"login":"someone_else","contributions":3}]'
+      )
+    end
+
+    it "should find projects contributed to" do
+      EventMachine.run_block { get '/contributions/foobar' }
+      last_response.body.should == '[{"name":"linux","owner":"linus"}'
+    end
+  end
 end
