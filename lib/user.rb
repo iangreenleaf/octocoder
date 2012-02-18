@@ -7,13 +7,26 @@ class User
       page += 1
     end until a.empty?
 
-    repos.inject([]) do |forks,current|
+    remain = 0
+    forks = []
+    EventMachine.run do
+    repos.each do |current|
       if current["fork"]
-        repo = JSON.parse RestClient.get "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
-        source = repo["source"]
-        forks << { :owner => source["owner"]["login"], :name => source["name"] }
+        remain += 1
+        http = EventMachine::Protocols::HttpClient2.connect(
+          :host => "api.github.com",
+          :port => 443,
+          :ssl => true
+        )
+        req = http.get "/repos/#{current["owner"]["login"]}/#{current["name"]}"
+        req.callback do |response|
+          remain -= 1
+          source = JSON.parse( response.content )["source"]
+          forks << { :owner => source["owner"]["login"], :name => source["name"] }
+          return forks if remain <= 0
+        end
       end
-      forks
+      end
     end
   end
 end
