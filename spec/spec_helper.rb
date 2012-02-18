@@ -10,6 +10,7 @@ RSpec.configure do |conf|
   conf.include Webrat::Methods
   conf.include Webrat::Matchers
   conf.before(:each) { FakeWeb.clean_registry }
+  conf.before(:suite) { DataMapper.auto_migrate! }
 end
 
 FakeWeb.allow_net_connect = false
