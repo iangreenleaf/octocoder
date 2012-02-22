@@ -118,12 +118,14 @@ describe CCS::V2 do
     it "caches the request" do
       get '/contributions/foobar'
       get '/contributions/foobar'
+      last_response.body.should == '[{"name":"linux","owner":"linus"}]'
       WebMock.should have_requested(:any, %r|/users/foobar/repos|).twice
     end
 
     it "reuses contributions cache" do
       get '/linus/linux/foobar'
       get '/contributions/foobar'
+      last_response.body.should == '[{"name":"linux","owner":"linus"}]'
       WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
     end
   end
