@@ -112,5 +112,17 @@ describe CCS::V2 do
       get '/contributions/foobar'
       last_response.body.should == '[]'
     end
+
+    it "caches the request" do
+      get '/contributions/foobar'
+      get '/contributions/foobar'
+      WebMock.should have_requested(:any, %r|/users/foobar/repos|).twice
+    end
+
+    it "reuses contributions cache" do
+      get '/linus/linux/foobar'
+      get '/contributions/foobar'
+      WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
+    end
   end
 end
