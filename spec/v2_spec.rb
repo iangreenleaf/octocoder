@@ -4,6 +4,8 @@ describe CCS::V2 do
   before do
     Repository.all.destroy!
     Contribution.all.destroy!
+    User.all.destroy!
+    Fork.all.destroy!
 
     %w[sinatra/sinatra leereilly/leereilly.net].each do |r|
       stub_request(

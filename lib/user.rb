@@ -1,9 +1,49 @@
 class User
-  def self.forks username
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :login, String
+  property :created_at, DateTime
+  property :updated_at, DateTime
+
+  has n, :forks
+
+  def stale?
+    time_now = DateTime.now
+    cache_expires_at = self.updated_at + 1
+
+    if time_now >= cache_expires_at
+      return true
+    else
+      return false
+    end
+  end
+
+  def refresh
+    delete_cache
+    create_cache
+  end
+
+  def delete_cache
+    forks.destroy
+  end
+
+  def self.forks login
+    user = User.first :login => login
+    if user
+      user.refresh if user.stale?
+    else
+      user = User.create :login => login
+      user.create_cache
+    end
+    user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
+  end
+
+  def create_cache
     repos = []
     page = 1
     begin
-      repos += (a = JSON.parse RestClient.get "https://api.github.com/users/#{username}/repos?page=#{page}&per_page=100")
+      repos += (a = JSON.parse RestClient.get "https://api.github.com/users/#{login}/repos?page=#{page}&per_page=100")
       page += 1
     end until a.empty?
 
@@ -19,12 +59,11 @@ class User
         end
       end
       http.callback do
-        forks = http.responses[:callback].collect do |n,resp|
+        self.forks = http.responses[:callback].collect do |n,resp|
           source = JSON.parse( resp.response )["source"]
-          { :owner => source["owner"]["login"], :name => source["name"] }
+          Fork.new :owner => source["owner"]["login"], :name => source["name"]
         end
         EventMachine.stop
-        return forks
       end
     end
   end
