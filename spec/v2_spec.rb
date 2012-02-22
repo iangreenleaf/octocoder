@@ -101,5 +101,16 @@ describe CCS::V2 do
       get '/contributions/foobar'
       last_response.body.should == '[{"name":"linux","owner":"linus"}]'
     end
+
+    it "works if no repos found" do
+      stub_request(
+        :get,
+        %r|https://api\.github\.com/users/foobar/repos\?.*|
+      ).to_return(
+        :body => "[]"
+      )
+      get '/contributions/foobar'
+      last_response.body.should == '[]'
+    end
   end
 end

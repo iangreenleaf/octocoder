@@ -7,6 +7,8 @@ class User
       page += 1
     end until a.empty?
 
+    return repos if repos.empty?
+
     EventMachine.run do
       http = EventMachine::MultiRequest.new
       repos.each_with_index do |current,i|
