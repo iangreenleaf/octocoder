@@ -7,24 +7,23 @@ class User
       page += 1
     end until a.empty?
 
-    remain = 0
-    forks = []
     EventMachine.run do
-      repos.each do |current|
+      http = EventMachine::MultiRequest.new
+      repos.each_with_index do |current,i|
         if current["fork"]
-          remain += 1
-          http = EventMachine::HttpRequest.new(
+          http.add i, EventMachine::HttpRequest.new(
             "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
           ).get
-          http.callback do
-            remain -= 1
-            source = JSON.parse( http.response )["source"]
-            forks << { :owner => source["owner"]["login"], :name => source["name"] }
-            EventMachine.stop if remain <= 0
-          end
         end
       end
+      http.callback do
+        forks = http.responses[:callback].collect do |n,resp|
+          source = JSON.parse( resp.response )["source"]
+          { :owner => source["owner"]["login"], :name => source["name"] }
+        end
+        EventMachine.stop
+        return forks
+      end
     end
-    forks
   end
 end
