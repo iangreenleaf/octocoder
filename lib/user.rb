@@ -13,15 +13,12 @@ class User
       repos.each do |current|
         if current["fork"]
           remain += 1
-          http = EventMachine::Protocols::HttpClient2.connect(
-            :host => "api.github.com",
-            :port => 443,
-            :ssl => true
-          )
-          req = http.get "/repos/#{current["owner"]["login"]}/#{current["name"]}"
-          req.callback do |response|
+          http = EventMachine::HttpRequest.new(
+            "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
+          ).get
+          http.callback do
             remain -= 1
-            source = JSON.parse( response.content )["source"]
+            source = JSON.parse( http.response )["source"]
             forks << { :owner => source["owner"]["login"], :name => source["name"] }
             EventMachine.stop if remain <= 0
           end

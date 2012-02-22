@@ -70,9 +70,10 @@ describe CCS::V2 do
         :get,
         %r|https://api\.github\.com/users/foobar/repos\?.*|
       ).to_return(
-        :body => '[{"name":"linux","fork":true,"owner":{"login":"foobar"}},
+        {:body => '[{"name":"linux","fork":true,"owner":{"login":"foobar"}},
         {"name":"my_thing","fork":false,"owner":{"login":"foobar"}},
-        {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}}]'
+        {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}}]'},
+        {:body => '[]'}
       )
       %w[linux didnt_contrib].each do |r|
         stub_request(
@@ -90,15 +91,15 @@ describe CCS::V2 do
       )
       stub_request(
         :get,
-        "https://api.github.com/repos/linus/linux/contributors"
+        "https://api.github.com/repos/linus/didnt_contrib/contributors"
       ).to_return(
         :body => '[{"login":"someone_else","contributions":3}]'
       )
     end
 
     it "should find projects contributed to" do
-      EventMachine.run_block { get '/contributions/foobar' }
-      last_response.body.should == '[{"name":"linux","owner":"linus"}'
+      get '/contributions/foobar'
+      last_response.body.should == '[{"name":"linux","owner":"linus"}]'
     end
   end
 end
