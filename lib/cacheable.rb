@@ -16,4 +16,21 @@ module Cacheable
     delete_cache
     create_cache
   end
+
+  module ClassMethods
+    def prime attrs
+      model = self.first attrs
+      if model
+        model.refresh if model.stale?
+      else
+        model = self.create attrs
+        model.create_cache
+      end
+      model
+    end
+  end
+
+  def self.included(base)
+    base.extend(ClassMethods)
+  end
 end

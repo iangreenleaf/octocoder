@@ -14,13 +14,7 @@ class User
   end
 
   def self.forks login
-    user = User.first :login => login
-    if user
-      user.refresh if user.stale?
-    else
-      user = User.create :login => login
-      user.create_cache
-    end
+    user = self.prime :login => login
     user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
   end
 

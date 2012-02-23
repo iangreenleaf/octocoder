@@ -11,9 +11,7 @@ class Repository
   has n, :contributions
 
   def delete_cache
-    adapter = DataMapper.repository(:default).adapter
-    adapter.execute("DELETE FROM contributions WHERE repository_id = #{self.id}")
-    adapter.execute("DELETE FROM repositories WHERE id = #{self.id}")
+    contributions.destroy
   end
 
   def create_cache
@@ -29,37 +27,13 @@ class Repository
     end
   end
   
-  def self.get_contributions(owner, repo, user) # TODO: Screaming to be refactored #codeSmell
+  def self.get_contributions(owner, repo, user)
     contributions = 0
-    repository = Repository.first(:owner => owner, :name => repo)
-    
-    if repository
-
-      if repository.stale?
-        repository.delete_cache
-        repository = Repository.create(:owner => owner, :name => repo)
-        repository.create_cache
-        contribution = Contribution.first(:repository => repository, :user => user)
-        if contribution
-          contributions = contribution['count']
-        end
-      else
-        contribution = Contribution.first(:user => user, :repository => repository)
-        if contribution
-          contributions = contribution['count']
-        end
-      end
-      
-    else
-      repository = Repository.create(:owner => owner, :name => repo)
-      repository.create_cache
-      contribution = Contribution.first(:repository => repository, :user => user)
-      
-      if contribution
-        contributions = contribution['count']
-      end
+    repository = prime :owner => owner, :name => repo
+    contribution = Contribution.first(:user => user, :repository => repository)
+    if contribution
+      contributions = contribution['count']
     end
-
     return contributions
   end
 end
