@@ -1,4 +1,5 @@
 class User
+  include Cacheable
   include DataMapper::Resource
 
   property :id, Serial
@@ -7,22 +8,6 @@ class User
   property :updated_at, DateTime
 
   has n, :forks
-
-  def stale?
-    time_now = DateTime.now
-    cache_expires_at = self.updated_at + 1
-
-    if time_now >= cache_expires_at
-      return true
-    else
-      return false
-    end
-  end
-
-  def refresh
-    delete_cache
-    create_cache
-  end
 
   def delete_cache
     forks.destroy

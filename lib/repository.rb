@@ -1,4 +1,5 @@
 class Repository  
+  include Cacheable
   include DataMapper::Resource
   
   property :id, Serial
@@ -8,22 +9,6 @@ class Repository
   property :updated_at, DateTime
   
   has n, :contributions
-
-  def stale?
-    time_now = DateTime.now
-    cache_expires_at = self.updated_at + 1
-
-    if time_now >= cache_expires_at
-      return true
-    else
-      return false
-    end
-  end
-
-  def refresh
-    delete_cache
-    create_cache
-  end
 
   def delete_cache
     adapter = DataMapper.repository(:default).adapter
