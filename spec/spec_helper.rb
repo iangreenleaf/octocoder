@@ -12,3 +12,5 @@ RSpec.configure do |conf|
   conf.include Webrat::Matchers
   conf.before(:each) { WebMock.reset! }
 end
+
+WebMock.disable_net_connect!
