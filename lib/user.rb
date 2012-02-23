@@ -63,6 +63,7 @@ class User
           source = JSON.parse( resp.response )["source"]
           Fork.new :owner => source["owner"]["login"], :name => source["name"]
         end
+        save!
         EventMachine.stop
       end
     end
