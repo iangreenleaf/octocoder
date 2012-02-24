@@ -21,10 +21,11 @@ class User
   def create_cache
     repos = []
     page = 1
+    per_page = 100
     begin
-      repos += (a = JSON.parse RestClient.get "https://api.github.com/users/#{login}/repos?page=#{page}&per_page=100")
+      repos += (a = JSON.parse RestClient.get "https://api.github.com/users/#{login}/repos?page=#{page}&per_page=#{per_page}")
       page += 1
-    end until a.empty?
+    end until a.length < per_page
 
     return repos if repos.empty?
 

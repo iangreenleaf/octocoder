@@ -72,10 +72,9 @@ describe CCS::V2 do
         :get,
         %r|https://api\.github\.com/users/foobar/repos\?.*|
       ).to_return(
-        {:body => '[{"name":"linux","fork":true,"owner":{"login":"foobar"}},
+        :body => '[{"name":"linux","fork":true,"owner":{"login":"foobar"}},
         {"name":"my_thing","fork":false,"owner":{"login":"foobar"}},
-        {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}}]'},
-        {:body => '[]'}
+        {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}}]'
       )
       %w[linux didnt_contrib].each do |r|
         stub_request(
@@ -119,7 +118,7 @@ describe CCS::V2 do
       get '/contributions/foobar'
       get '/contributions/foobar'
       last_response.body.should == '[{"name":"linux","owner":"linus"}]'
-      WebMock.should have_requested(:any, %r|/users/foobar/repos|).twice
+      WebMock.should have_requested(:any, %r|/users/foobar/repos|).once
     end
 
     it "reuses contributions cache" do
