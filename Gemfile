@@ -16,5 +16,6 @@ group :test do
   gem 'rack-test', :require => "rack/test"
   gem 'webrat'
   gem 'webmock'
+  gem 'timecop'
 end
 

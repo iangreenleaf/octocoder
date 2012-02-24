@@ -38,6 +38,16 @@ describe CCS::V2 do
       get '/sinatra/sinatra/leereilly/'
       WebMock.should have_requested(:any, /.*/).once
     end
+
+    it "cache miss once enough time elapses" do
+      get '/sinatra/sinatra/leereilly/'
+      Timecop.travel DateTime.now + 0.6
+      get '/sinatra/sinatra/leereilly/'
+      WebMock.should have_requested(:any, /.*/).once
+      Timecop.travel DateTime.now + 0.6
+      get '/sinatra/sinatra/leereilly/'
+      WebMock.should have_requested(:any, /.*/).twice
+    end
   end
   
   # Valid owner, valid repo, invalid user
@@ -119,6 +129,17 @@ describe CCS::V2 do
       get '/contributions/foobar'
       last_response.body.should == '[{"name":"linux","owner":"linus"}]'
       WebMock.should have_requested(:any, %r|/users/foobar/repos|).once
+      WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
+    end
+
+    it "cache miss once enough time elapses" do
+      get '/contributions/foobar'
+      Timecop.travel DateTime.now + 0.6
+      get '/contributions/foobar'
+      WebMock.should have_requested(:any, %r|/users/foobar/repos|).once
+      Timecop.travel DateTime.now + 0.6
+      get '/contributions/foobar'
+      WebMock.should have_requested(:any, %r|/users/foobar/repos|).twice
     end
 
     it "reuses contributions cache" do
