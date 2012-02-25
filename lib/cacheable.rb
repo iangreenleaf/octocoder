@@ -26,18 +26,13 @@ module Cacheable
   module ClassMethods
     def prime attrs
       model = self.first attrs
-      EventMachine.run do
-        if model.nil?
-          model = self.create attrs
-          model.create_cache
-        else
-          model.refresh
-        end
-        model.callback do |m|
-          EventMachine.stop
-          return m
-        end
+      if model.nil?
+        model = self.create attrs
+        model.create_cache
+      else
+        model.refresh
       end
+      model
     end
   end
 

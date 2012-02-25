@@ -2,6 +2,7 @@ class Repository
   include Cacheable
   include DataMapper::Resource
   include EventMachine::Deferrable
+  extend EventMachine::Deferrable
   
   property :id, Serial
   property :owner, String
@@ -31,12 +32,22 @@ class Repository
   end
   
   def self.get_contributions(owner, repo, user)
-    contributions = 0
+    d = Dummy.new
     repository = prime :owner => owner, :name => repo
-    contribution = Contribution.first(:user => user, :repository => repository)
-    if contribution
-      contributions = contribution['count']
+    repository.callback do |repository|
+      contribution = Contribution.first(:user => user, :repository => repository)
+      if contribution
+        contributions = contribution['count']
+      else
+        contributions = 0
+      end
+      d.succeed contributions
     end
-    return contributions
+    d
   end
+end
+
+# I can only assume my use of this class indicates serious structural problems
+class Dummy
+  include EventMachine::Deferrable
 end

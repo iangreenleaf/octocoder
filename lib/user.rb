@@ -2,6 +2,7 @@ class User
   include Cacheable
   include DataMapper::Resource
   include EventMachine::Deferrable
+  extend EventMachine::Deferrable
 
   property :id, Serial
   property :login, String
@@ -16,7 +17,10 @@ class User
 
   def self.forks login
     user = self.prime :login => login
-    user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
+    user.callback do |user|
+      succeed user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
+    end
+    self
   end
 
   def create_cache

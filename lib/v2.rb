@@ -18,19 +18,35 @@ module CCS
     
     get '/:owner/:repo/:user/?' do
       content_type :json
-      
-      begin
-        contributions = Repository::get_contributions(params[:owner], params[:repo], params[:user])
-        response = {:count => contributions}
-      rescue => e
-       response = {:error => e.message.to_s}
+
+      response = nil
+      EventMachine.run do
+        begin
+          contributions = Repository::get_contributions(params[:owner], params[:repo], params[:user])
+        rescue => e
+         response = {:error => e.message.to_s}
+        end
+        contributions.callback do |contributions|
+          response = {:count => contributions}
+          EventMachine.stop
+        end
       end
       response.to_json
-    end  
+    end
 
     get '/contributions/:user' do
-      response = User.forks(params[:user]).reject do |branch|
-        Repository::get_contributions(branch[:owner], branch[:name], params[:user]).zero?
+      response = []
+      EventMachine.run do
+        User.forks(params[:user]).callback do |forks|
+          remain = 0
+          forks.each do |branch|
+            Repository::get_contributions(branch[:owner], branch[:name], params[:user]).callback do |contribution|
+              response << branch unless contribution.zero?
+              remain += 1
+              EventMachine.stop if remain = forks.length
+            end
+          end
+        end
       end
       response.to_json
     end
