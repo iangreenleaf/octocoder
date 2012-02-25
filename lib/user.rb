@@ -1,6 +1,7 @@
 class User
   include Cacheable
   include DataMapper::Resource
+  include EventMachine::Deferrable
 
   property :id, Serial
   property :login, String
@@ -27,25 +28,23 @@ class User
       page += 1
     end until a.length < per_page
 
-    return repos if repos.empty?
+    succeed self if repos.empty?
 
-    EventMachine.run do
-      http = EventMachine::MultiRequest.new
-      repos.each_with_index do |current,i|
-        if current["fork"]
-          http.add i, EventMachine::HttpRequest.new(
-            "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
-          ).get
-        end
+    http = EventMachine::MultiRequest.new
+    repos.each_with_index do |current,i|
+      if current["fork"]
+        http.add i, EventMachine::HttpRequest.new(
+          "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
+        ).get
       end
-      http.callback do
-        self.forks = http.responses[:callback].collect do |n,resp|
-          source = JSON.parse( resp.response )["source"]
-          Fork.new :owner => source["owner"]["login"], :name => source["name"]
-        end
-        save!
-        EventMachine.stop
+    end
+    http.callback do
+      self.forks = http.responses[:callback].collect do |n,resp|
+        source = JSON.parse( resp.response )["source"]
+        Fork.new :owner => source["owner"]["login"], :name => source["name"]
       end
+      save!
+      succeed self
     end
   end
 end

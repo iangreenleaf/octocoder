@@ -1,6 +1,7 @@
 class Repository  
   include Cacheable
   include DataMapper::Resource
+  include EventMachine::Deferrable
   
   property :id, Serial
   property :owner, String
@@ -19,11 +20,13 @@ class Repository
   end
   
   def cache_contributors_from_github(repository_id)
-    contributors_text = RestClient.get "https://api.github.com/repos/#{self.owner}/#{self.name}/contributors"
-    contributors_json = JSON.parse(contributors_text)
-    
-    contributors_json.each do |contributor|
-      contribution = Contribution.create(:repository => Repository.get(repository_id), :user => contributor['login'], :count => contributor['contributions'])
+    contributors_http = EventMachine::HttpRequest.new("https://api.github.com/repos/#{self.owner}/#{self.name}/contributors").get
+    contributors_http.callback do
+      contributors_json = JSON.parse(contributors_http.response)
+      contributors_json.each do |contributor|
+        contribution = Contribution.create(:repository => Repository.get(repository_id), :user => contributor['login'], :count => contributor['contributions'])
+      end
+      self.succeed self
     end
   end
   
