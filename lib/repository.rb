@@ -25,7 +25,7 @@ class Repository
     contributors_http.callback do
       contributors_json = JSON.parse(contributors_http.response)
       contributors_json.each do |contributor|
-        contribution = Contribution.create(:repository => Repository.get(repository_id), :user => contributor['login'], :count => contributor['contributions'])
+        contribution = Contribution.create(:repository => self, :user => contributor['login'], :count => contributor['contributions'])
       end
       self.succeed self
     end
