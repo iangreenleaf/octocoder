@@ -148,5 +148,17 @@ describe CCS::V2 do
       last_response.body.should == '[{"name":"linux","owner":"linus"}]'
       WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
     end
+
+    it "should return an error if the repo doesn't exist" do
+      stub_request(
+        :get,
+        %r|https://api\.github\.com/users/barbaz/repos\?.*|
+      ).to_return(
+        :body => '{"message":"Not Found"}',
+        :status => ["404", "Not Found"]
+      )
+      get '/contributions/barbaz'
+      last_response.body.should == '{"error":"404 Resource Not Found"}'
+    end
   end
 end
