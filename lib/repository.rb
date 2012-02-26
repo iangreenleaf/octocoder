@@ -2,7 +2,6 @@ class Repository
   include Cacheable
   include DataMapper::Resource
   include EventMachine::Deferrable
-  extend EventMachine::Deferrable
   
   property :id, Serial
   property :owner, String
@@ -21,24 +20,23 @@ class Repository
   end
   
   def cache_contributors_from_github(repository_id)
-    contributors_http = EventMachine::HttpRequest.new("https://api.github.com/repos/#{self.owner}/#{self.name}/contributors").get
-    contributors_http.callback do
-      if contributors_http.response_header.status == 200
-        contributors_json = JSON.parse(contributors_http.response)
-        contributors_json.each do |contributor|
+    req = EventMachine::HttpRequest.new("https://api.github.com/repos/#{self.owner}/#{self.name}/contributors").get
+    req.callback do
+      if req.response_header.status == 200
+        JSON.parse(req.response).each do |contributor|
           contribution = Contribution.create(:repository => self, :user => contributor['login'], :count => contributor['contributions'])
         end
-        self.succeed self
+        succeed self
       else
-        fail JSON.parse(contributors_http.response)["message"]
+        fail JSON.parse(req.response)["message"]
       end
     end
   end
   
   def self.get_contributions(owner, repo, user)
     d = RepositoryDummy.new
-    repository = prime :owner => owner, :name => repo
-    repository.callback do |repository|
+    deferred = prime :owner => owner, :name => repo
+    deferred.callback do |repository|
       contribution = Contribution.first(:user => user, :repository => repository)
       if contribution
         contributions = contribution['count']
@@ -47,7 +45,7 @@ class Repository
       end
       d.succeed contributions
     end
-    repository.errback {|e| d.fail e }
+    deferred.errback {|e| d.fail e }
     d
   end
 end

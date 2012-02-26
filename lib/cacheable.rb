@@ -6,12 +6,7 @@ module Cacheable
   def stale?
     time_now = DateTime.now
     cache_expires_at = self.updated_at + 1
-
-    if time_now >= cache_expires_at
-      return true
-    else
-      return false
-    end
+    return time_now >= cache_expires_at
   end
 
   def refresh
