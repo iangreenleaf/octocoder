@@ -44,7 +44,7 @@ module CCS
             Repository::get_contributions(branch[:owner], branch[:name], params[:user]).callback do |contribution|
               response << branch unless contribution.zero?
               remain += 1
-              EventMachine.stop if remain = forks.length
+              EventMachine.stop if remain == forks.length
             end
           end
         end
