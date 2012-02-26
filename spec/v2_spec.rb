@@ -72,7 +72,7 @@ describe CCS::V2 do
         :status => ["404", "Not Found"]
       )
       get '/admin/schmadmin/schnarf-schnarf/'
-      last_response.body.should == '{"error":"404 Resource Not Found"}'
+      last_response.body.should == '{"error":"Not Found"}'
     end
   end
 

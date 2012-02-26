@@ -23,11 +23,15 @@ class Repository
   def cache_contributors_from_github(repository_id)
     contributors_http = EventMachine::HttpRequest.new("https://api.github.com/repos/#{self.owner}/#{self.name}/contributors").get
     contributors_http.callback do
-      contributors_json = JSON.parse(contributors_http.response)
-      contributors_json.each do |contributor|
-        contribution = Contribution.create(:repository => self, :user => contributor['login'], :count => contributor['contributions'])
+      if contributors_http.response_header.status == 200
+        contributors_json = JSON.parse(contributors_http.response)
+        contributors_json.each do |contributor|
+          contribution = Contribution.create(:repository => self, :user => contributor['login'], :count => contributor['contributions'])
+        end
+        self.succeed self
+      else
+        fail JSON.parse(contributors_http.response)["message"]
       end
-      self.succeed self
     end
   end
   
@@ -43,6 +47,7 @@ class Repository
       end
       d.succeed contributions
     end
+    repository.errback {|e| d.fail e }
     d
   end
 end

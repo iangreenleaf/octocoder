@@ -21,13 +21,13 @@ module CCS
 
       response = nil
       EventMachine.run do
-        begin
-          contributions = Repository::get_contributions(params[:owner], params[:repo], params[:user])
-        rescue => e
-         response = {:error => e.message.to_s}
-        end
-        contributions.callback do |contributions|
+        req = Repository::get_contributions(params[:owner], params[:repo], params[:user])
+        req.callback do |contributions|
           response = {:count => contributions}
+          EventMachine.stop
+        end
+        req.errback do |message|
+          response = {:error => message}
           EventMachine.stop
         end
       end
