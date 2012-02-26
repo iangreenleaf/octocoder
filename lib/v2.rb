@@ -37,7 +37,8 @@ module CCS
     get '/contributions/:user' do
       response = []
       EventMachine.run do
-        User.forks(params[:user]).callback do |forks|
+        req = User.forks(params[:user])
+        req.callback do |forks|
           EventMachine.stop if forks.empty?
           remain = 0
           forks.each do |branch|
@@ -47,6 +48,10 @@ module CCS
               EventMachine.stop if remain == forks.length
             end
           end
+        end
+        req.errback do |message|
+          response = {:error => message}
+          EventMachine.stop
         end
       end
       response.to_json

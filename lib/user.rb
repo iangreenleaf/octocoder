@@ -21,6 +21,7 @@ class User
     user.callback do |user|
       d.succeed user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
     end
+    user.errback {|e| d.fail e }
     d
   end
 
@@ -31,6 +32,8 @@ class User
     begin
       repos += (a = JSON.parse RestClient.get "https://api.github.com/users/#{login}/repos?page=#{page}&per_page=#{per_page}")
       page += 1
+    rescue => e
+      return fail e.message.to_s
     end until a.length < per_page
 
     return succeed self if repos.empty?
