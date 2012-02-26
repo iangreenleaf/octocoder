@@ -24,8 +24,9 @@ class Repository
     req.callback do
       if req.response_header.status == 200
         JSON.parse(req.response).each do |contributor|
-          contribution = Contribution.create(:repository => self, :user => contributor['login'], :count => contributor['contributions'])
+          self.contributions.new(:user => contributor['login'], :count => contributor['contributions'])
         end
+        self.save
         succeed self
       else
         fail JSON.parse(req.response)["message"]
