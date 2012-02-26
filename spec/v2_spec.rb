@@ -162,4 +162,33 @@ describe CCS::V2 do
       last_response.body.should == '{"error":"404 Resource Not Found"}'
     end
   end
+
+  describe "GET '/contributions/foobar' with large response" do
+    it "sends multiple requests for repos if necessary" do
+      big_payload = (1..100).collect do |n|
+        { :name => "abc#{n}", :fork => false, :owner => { :login => "prolific" } }
+      end
+      stub_request(
+        :get,
+        %r|https://api\.github\.com/users/prolific/repos\?.*|
+      ).to_return(
+        { :body => big_payload.to_json },
+        { :body => '[{"name":"second_batch","fork":true,"owner":{"login":"prolific"}}]' }
+      )
+      stub_request(
+        :get,
+        "https://api.github.com/repos/prolific/second_batch"
+      ).to_return(
+        :body => '{"source":{"name":"second_batch","owner":{"login":"linus"}}}'
+      )
+      stub_request(
+        :get,
+        "https://api.github.com/repos/linus/second_batch/contributors"
+      ).to_return(
+        :body => '[{"login":"prolific","contributions":3}]'
+      )
+      get '/contributions/prolific'
+      last_response.body.should == '[{"name":"second_batch","owner":"linus"}]'
+    end
+  end
 end
