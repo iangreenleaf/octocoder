@@ -38,6 +38,7 @@ module CCS
       response = []
       EventMachine.run do
         User.forks(params[:user]).callback do |forks|
+          EventMachine.stop if forks.empty?
           remain = 0
           forks.each do |branch|
             Repository::get_contributions(branch[:owner], branch[:name], params[:user]).callback do |contribution|

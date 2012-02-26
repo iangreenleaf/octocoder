@@ -114,7 +114,6 @@ describe CCS::V2 do
     end
 
     it "works if no repos found" do
-      pending
       stub_request(
         :get,
         %r|https://api\.github\.com/users/foobar/repos\?.*|

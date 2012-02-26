@@ -32,7 +32,7 @@ class User
       page += 1
     end until a.length < per_page
 
-    succeed self if repos.empty?
+    return succeed self if repos.empty?
 
     http = EventMachine::MultiRequest.new
     repos.each_with_index do |current,i|
