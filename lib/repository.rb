@@ -32,7 +32,7 @@ class Repository
   end
   
   def self.get_contributions(owner, repo, user)
-    d = Dummy.new
+    d = RepositoryDummy.new
     repository = prime :owner => owner, :name => repo
     repository.callback do |repository|
       contribution = Contribution.first(:user => user, :repository => repository)
@@ -48,6 +48,6 @@ class Repository
 end
 
 # I can only assume my use of this class indicates serious structural problems
-class Dummy
+class RepositoryDummy
   include EventMachine::Deferrable
 end

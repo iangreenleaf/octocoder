@@ -16,11 +16,12 @@ class User
   end
 
   def self.forks login
+    d = UserDummy.new
     user = self.prime :login => login
     user.callback do |user|
-      succeed user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
+      d.succeed user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
     end
-    self
+    d
   end
 
   def create_cache
@@ -51,4 +52,9 @@ class User
       succeed self
     end
   end
+end
+
+# I can only assume my use of this class indicates serious structural problems
+class UserDummy
+  include EventMachine::Deferrable
 end
