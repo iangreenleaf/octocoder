@@ -84,9 +84,10 @@ describe CCS::V2 do
       ).to_return(
         :body => '[{"name":"linux","fork":true,"owner":{"login":"foobar"}},
         {"name":"my_thing","fork":false,"owner":{"login":"foobar"}},
-        {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}}]'
+        {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}},
+        {"name":"git","fork":true,"owner":{"login":"foobar"}}]'
       )
-      %w[linux didnt_contrib].each do |r|
+      %w[linux git didnt_contrib].each do |r|
         stub_request(
           :get,
           "https://api.github.com/repos/foobar/#{r}"
@@ -96,7 +97,7 @@ describe CCS::V2 do
       end
       stub_request(
         :get,
-        "https://api.github.com/repos/linus/linux/contributors"
+        %r~https://api.github.com/repos/linus/(linux|git)/contributors~
       ).to_return(
         :body => '[{"login":"foobar","contributions":3}]'
       )
@@ -110,7 +111,7 @@ describe CCS::V2 do
 
     it "should find projects contributed to" do
       get '/contributions/foobar'
-      last_response.body.should == '[{"name":"linux","owner":"linus"}]'
+      last_response.body.should == '[{"name":"linux","owner":"linus"},{"name":"git","owner":"linus"}]'
     end
 
     it "works if no repos found" do
@@ -127,7 +128,7 @@ describe CCS::V2 do
     it "caches the request" do
       get '/contributions/foobar'
       get '/contributions/foobar'
-      last_response.body.should == '[{"name":"linux","owner":"linus"}]'
+      last_response.body.should == '[{"name":"linux","owner":"linus"},{"name":"git","owner":"linus"}]'
       WebMock.should have_requested(:any, %r|/users/foobar/repos|).once
       WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
     end
@@ -145,7 +146,7 @@ describe CCS::V2 do
     it "reuses contributions cache" do
       get '/linus/linux/foobar'
       get '/contributions/foobar'
-      last_response.body.should == '[{"name":"linux","owner":"linus"}]'
+      last_response.body.should == '[{"name":"linux","owner":"linus"},{"name":"git","owner":"linus"}]'
       WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
     end
 
