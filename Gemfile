@@ -7,8 +7,6 @@ gem 'heroku'
 gem 'json'
 gem 'em-http-request'
 gem 'data_mapper'
-gem 'dm-mysql-adapter'
-gem 'dm-sqlite-adapter'
 gem 'dm-postgres-adapter'
 
 group :test do
@@ -17,5 +15,6 @@ group :test do
   gem 'webrat'
   gem 'webmock'
   gem 'timecop'
+  gem 'dm-sqlite-adapter'
 end
 
