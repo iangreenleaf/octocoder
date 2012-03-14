@@ -57,11 +57,10 @@ If everything looks OK, launch the application
     
 ## Installation on Heroku  
 
-There are 4 easy steps (if you've used Heroku before). Please refer to [Heroku Dev Center](http://devcenter.heroku.com/articles/quickstart) for help with Heroku.
+Please refer to [Heroku Dev Center](http://devcenter.heroku.com/articles/quickstart) for help with Heroku.
 
-    git clone git@github.com:leereilly/octocoder.git
-    cd octocoder
-    heroku create 
+    heroku create --stack cedar
+    heroku addons:add shared-database:5mb
     git push heroku master
 
 # Note About API Version
