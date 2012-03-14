@@ -12,7 +12,7 @@ class Repository
   has n, :contributions
 
   def delete_cache
-    contributions.destroy
+    contributions.destroy!
   end
 
   def create_cache

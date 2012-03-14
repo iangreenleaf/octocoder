@@ -11,7 +11,7 @@ class User
   has n, :forks
 
   def delete_cache
-    forks.destroy
+    forks.destroy!
   end
 
   def self.forks login
