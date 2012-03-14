@@ -1,3 +1,4 @@
+require File.dirname(__FILE__) + '/cacheable'
 class Repository  
   include Cacheable
   include DataMapper::Resource

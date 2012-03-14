@@ -1,3 +1,4 @@
+require File.dirname(__FILE__) + '/cacheable'
 class User
   include Cacheable
   include DataMapper::Resource
