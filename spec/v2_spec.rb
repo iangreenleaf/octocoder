@@ -111,7 +111,12 @@ describe CCS::V2 do
 
     it "should find projects contributed to" do
       get '/contributions/foobar'
-      last_response.body.should == '[{"name":"linux","owner":"linus"},{"name":"git","owner":"linus"}]'
+      response = JSON.parse last_response.body
+      response.length.should == 2
+      response.first["name"].should == "linux"
+      response.first["owner"].should == "linus"
+      response.last["name"].should == "git"
+      response.last["owner"].should == "linus"
     end
 
     it "works if no repos found" do
@@ -128,7 +133,7 @@ describe CCS::V2 do
     it "caches the request" do
       get '/contributions/foobar'
       get '/contributions/foobar'
-      last_response.body.should == '[{"name":"linux","owner":"linus"},{"name":"git","owner":"linus"}]'
+      JSON.parse(last_response.body).length.should == 2
       WebMock.should have_requested(:any, %r|/users/foobar/repos|).once
       WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
     end
@@ -146,7 +151,7 @@ describe CCS::V2 do
     it "reuses contributions cache" do
       get '/linus/linux/foobar'
       get '/contributions/foobar'
-      last_response.body.should == '[{"name":"linux","owner":"linus"},{"name":"git","owner":"linus"}]'
+      JSON.parse(last_response.body).length.should == 2
       WebMock.should have_requested(:any, %r|/repos/linus/linux/contributors|).once
     end
 
@@ -188,7 +193,10 @@ describe CCS::V2 do
         :body => '[{"login":"prolific","contributions":3}]'
       )
       get '/contributions/prolific'
-      last_response.body.should == '[{"name":"second_batch","owner":"linus"}]'
+      response = JSON.parse last_response.body
+      response.length.should == 1
+      response.first["name"].should == "second_batch"
+      response.first["owner"].should == "linus"
     end
   end
 end
