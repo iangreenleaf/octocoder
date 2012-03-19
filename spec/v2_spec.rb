@@ -92,7 +92,7 @@ describe CCS::V2 do
           :get,
           "https://api.github.com/repos/foobar/#{r}"
       ).to_return(
-          :body => '{"source":{"name":"'+r+'","html_url":"https://github.com/linus/'+r+'","owner":{"login":"linus"}}}'
+          :body => '{"source":{"name":"'+r+'","html_url":"https://github.com/linus/'+r+'","owner":{"login":"linus"},"created_at":"2001-01-01T04:26:53Z","id": 12345}}'
         )
       end
       stub_request(
@@ -119,6 +119,14 @@ describe CCS::V2 do
       response.last["name"].should == "git"
       response.last["owner"].should == "linus"
       response.last["html_url"].should == "https://github.com/linus/git"
+    end
+
+    it "should not get confused by special properties" do
+      get '/contributions/foobar'
+      response = JSON.parse last_response.body
+      response.first["fork_created_at"].should == "2001-01-01T04:26:53Z"
+      response.first["created_at"].should_not == "2001-01-01T04:26:53Z"
+      response.first["id"].should be_nil
     end
 
     it "works if no repos found" do
