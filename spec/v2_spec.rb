@@ -92,7 +92,7 @@ describe CCS::V2 do
           :get,
           "https://api.github.com/repos/foobar/#{r}"
       ).to_return(
-          :body => '{"source":{"name":"'+r+'","owner":{"login":"linus"}}}'
+          :body => '{"source":{"name":"'+r+'","html_url":"https://github.com/linus/'+r+'","owner":{"login":"linus"}}}'
         )
       end
       stub_request(
@@ -115,8 +115,10 @@ describe CCS::V2 do
       response.length.should == 2
       response.first["name"].should == "linux"
       response.first["owner"].should == "linus"
+      response.first["html_url"].should == "https://github.com/linus/linux"
       response.last["name"].should == "git"
       response.last["owner"].should == "linus"
+      response.last["html_url"].should == "https://github.com/linus/git"
     end
 
     it "works if no repos found" do

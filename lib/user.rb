@@ -19,7 +19,7 @@ class User
     d = UserDummy.new
     user = self.prime :login => login
     user.callback do |user|
-      d.succeed user.forks.collect {|f| { :owner => f.owner, :name => f.name } }
+      d.succeed user.forks.collect {|f| f.attributes }
     end
     user.errback {|e| d.fail e }
     d
@@ -49,7 +49,9 @@ class User
     http.callback do
       self.forks = http.responses[:callback].collect do |_,resp|
         source = JSON.parse( resp.response )["source"]
-        Fork.new :owner => source["owner"]["login"], :name => source["name"]
+        Fork.new source.reject do |k,v|
+          Fork.properties[k].nil?
+        end
       end
       save!
       touch
