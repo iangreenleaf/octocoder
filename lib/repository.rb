@@ -28,6 +28,7 @@ class Repository
           self.contributions.new(:user => contributor['login'], :count => contributor['contributions'])
         end
         self.save
+        self.touch
         succeed self
       else
         fail JSON.parse(req.response)["message"]

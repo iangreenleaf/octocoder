@@ -148,6 +148,14 @@ describe CCS::V2 do
       WebMock.should have_requested(:any, %r|/users/foobar/repos|).twice
     end
 
+    it "is cached again later" do
+      get '/contributions/foobar'
+      Timecop.travel DateTime.now + 1.1
+      get '/contributions/foobar'
+      get '/contributions/foobar'
+      WebMock.should have_requested(:any, %r|/users/foobar/repos|).twice
+    end
+
     it "reuses contributions cache" do
       get '/linus/linux/foobar'
       get '/contributions/foobar'

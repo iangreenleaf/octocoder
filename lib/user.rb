@@ -52,6 +52,7 @@ class User
         Fork.new :owner => source["owner"]["login"], :name => source["name"]
       end
       save!
+      touch
       succeed self
     end
   end
