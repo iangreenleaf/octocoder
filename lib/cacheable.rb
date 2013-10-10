@@ -1,7 +1,5 @@
 # A mixin for models that wish to cache data, to be refreshed after a certain
 # amount of time.
-#
-# Warning: I hope your model implements an EventMachine::Deferrable! Surprise!
 module Cacheable
   def stale?
     time_now = DateTime.now
@@ -13,8 +11,6 @@ module Cacheable
     if stale?
       delete_cache
       create_cache
-    else
-      succeed self
     end
   end
 
