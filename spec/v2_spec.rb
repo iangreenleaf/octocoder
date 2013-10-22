@@ -80,30 +80,30 @@ describe CCS::V2 do
     before do
       stub_request(
         :get,
-        %r|https://api\.github\.com/users/foobar/repos\?.*|
+        %r~https://api\.github\.com/users/foobar/repos\??.*~
       ).to_return(
         :body => '[{"name":"linux","fork":true,"owner":{"login":"foobar"}},
         {"name":"my_thing","fork":false,"owner":{"login":"foobar"}},
         {"name":"didnt_contrib","fork":true,"owner":{"login":"foobar"}},
         {"name":"git","fork":true,"owner":{"login":"foobar"}}]'
       )
-      %w[linux git didnt_contrib].each do |r|
+      %w[linux git didnt_contrib].each_with_index do |r,i|
         stub_request(
           :get,
-          "https://api.github.com/repos/foobar/#{r}"
+          %r~https://api\.github\.com/repos/foobar/#{r}~
       ).to_return(
-          :body => '{"source":{"name":"'+r+'","html_url":"https://github.com/linus/'+r+'","owner":{"login":"linus"},"created_at":"2001-01-01T04:26:53Z","id": 12345}}'
+          :body => '{"source":{"name":"'+r+'","html_url":"https://github.com/linus/'+r+'","owner":{"login":"linus"},"created_at":"2001-01-01T04:26:53Z","id": 12345'+i.to_s+'}}'
         )
       end
       stub_request(
         :get,
-        %r~https://api.github.com/repos/linus/(linux|git)/contributors~
+        %r~https://api\.github\.com/repos/linus/(linux|git)/contributors~
       ).to_return(
         :body => '[{"login":"foobar","contributions":3}]'
       )
       stub_request(
         :get,
-        "https://api.github.com/repos/linus/didnt_contrib/contributors"
+        %r~https://api\.github\.com/repos/linus/didnt_contrib/contributors~
       ).to_return(
         :body => '[{"login":"someone_else","contributions":3}]'
       )
