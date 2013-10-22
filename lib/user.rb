@@ -1,6 +1,8 @@
 require File.dirname(__FILE__) + '/cacheable'
 class User
+
   include Cacheable
+  include ApiResource
   include DataMapper::Resource
 
   property :id, Serial
@@ -24,7 +26,7 @@ class User
     page = 1
     per_page = 100
     begin
-      repos += (a = JSON.parse RestClient.get "https://api.github.com/users/#{login}/repos?page=#{page}&per_page=#{per_page}")
+      repos += (a = JSON.parse api_request("https://api.github.com/users/#{login}/repos?page=#{page}&per_page=#{per_page}").run.body)
       page += 1
     rescue => e
       raise e.message.to_s
@@ -35,9 +37,7 @@ class User
     hydra = Typhoeus::Hydra.hydra
     repos.each do |current|
       if current["fork"]
-        req = Typhoeus::Request.new(
-          "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
-        )
+        req = api_request "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
         req.on_complete do |response|
           source = JSON.parse( response.body )["source"]
           attrs = source.reject do |k,v|

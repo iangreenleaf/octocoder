@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/cacheable'
 class Repository  
+  include ApiResource
   include Cacheable
   include DataMapper::Resource
   
@@ -20,7 +21,7 @@ class Repository
   end
   
   def cache_contributors_from_github(repository_id)
-    req = Typhoeus.get("https://api.github.com/repos/#{self.owner}/#{self.name}/contributors")
+    req = api_request("https://api.github.com/repos/#{self.owner}/#{self.name}/contributors").run
     if req.response_code == 200
       JSON.parse(req.response_body).each do |contributor|
         self.contributions.new(:user => contributor['login'], :count => contributor['contributions'])

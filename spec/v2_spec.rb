@@ -15,6 +15,12 @@ describe CCS::V2 do
         :body => '[{"login":"leereilly","contributions":3}]'
       )
     end
+
+    # Stub out the api authentication stuff, because we generally
+    # don't care about it.
+    [Repository, User].each do |klass|
+      klass.any_instance.stub(:prepare_opts) {|opts| opts.dup }
+    end
   end
 
   def app
