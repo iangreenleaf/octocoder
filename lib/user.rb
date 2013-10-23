@@ -34,7 +34,7 @@ class User
 
     return self if repos.empty?
 
-    hydra = Typhoeus::Hydra.hydra
+    hydra = Typhoeus::Hydra.new :max_concurrency => 20
     repos.each do |current|
       if current["fork"]
         req = api_request "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
