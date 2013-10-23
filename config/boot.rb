@@ -11,6 +11,8 @@ DataMapper::Model.raise_on_save_failure = false
 
 Dir["./lib/**/*.rb"].each { |f| require f }
 
+$logger = Logger.new($stdout, :debug) if ENV["RACK_ENV"] == "development"
+
 DataMapper.setup(:default, ENV['DATABASE_URL'] || 'sqlite3://my.db')
 DataMapper.auto_upgrade!
 

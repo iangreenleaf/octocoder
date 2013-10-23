@@ -39,11 +39,15 @@ class User
       if current["fork"]
         req = api_request "https://api.github.com/repos/#{current["owner"]["login"]}/#{current["name"]}"
         req.on_complete do |response|
-          source = JSON.parse( response.body )["source"]
-          attrs = source.reject do |k,v|
-            Fork.properties[k].nil?
+          if response.response_code == 200
+            source = JSON.parse( response.body )["source"]
+            attrs = source.reject do |k,v|
+              Fork.properties[k].nil?
+            end
+            self.forks << Fork.new(attrs)
+          else
+            $logger.error "Request failed: [#{response.response_code}, #{response.return_message}) at #{response.request.url}}"
           end
-          self.forks << Fork.new(attrs)
         end
         hydra.queue req
       end
